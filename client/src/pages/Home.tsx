@@ -1,5 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PumpStationData, WaterLevelService } from "@/lib/WaterLevelService";
 import { ForecastData, ObservationData, RainfallData, WeatherData, WeatherService } from "@/lib/WeatherService";
 import { format } from "date-fns";
 import { AlertTriangle, ArrowDown, ArrowUp, CloudRain, Droplets, Thermometer, Waves, Wind } from "lucide-react";
@@ -22,11 +23,13 @@ export default function Home() {
   const [observation, setObservation] = useState<ObservationData | null>(null);
   const [rainfall, setRainfall] = useState<RainfallData | null>(null);
   const [forecast, setForecast] = useState<ForecastData[]>([]);
+  const [stationData, setStationData] = useState<PumpStationData | null>(null);
 
   useEffect(() => {
-    const fetchWeather = async () => {
+    const fetchData = async () => {
+      // Weather Data
       const wData = await WeatherService.getGeneralForecast();
-      const oData = await WeatherService.getRealtimeObservation("臺北"); // 優先使用臺北測站 (局屬)
+      const oData = await WeatherService.getRealtimeObservation("臺北");
       const rData = await WeatherService.getRealtimeRainfall();
       const fData = await WeatherService.getDistrictForecast();
       
@@ -34,10 +37,14 @@ export default function Home() {
       if (oData) setObservation(oData);
       if (rData) setRainfall(rData);
       if (fData) setForecast(fData);
+
+      // Water Level Data
+      const sData = await WaterLevelService.getZhongshanStationData();
+      if (sData) setStationData(sData);
     };
 
-    fetchWeather();
-    const interval = setInterval(fetchWeather, 600000); // Update every 10 mins
+    fetchData();
+    const interval = setInterval(fetchData, 600000); // Update every 10 mins
     return () => clearInterval(interval);
   }, []);
 
@@ -65,33 +72,33 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <MetricCard
             title="內水位 (Inner)"
-            value="0.85 m"
-            trend="+0.12"
+            value={`${stationData?.inner_level.toFixed(2) || "0.85"} m`}
+            trend={stationData ? "即時" : "+0.12"}
             trendUp={true}
             icon={Waves}
-            status="normal"
+            status={stationData?.warning_status.includes("正常") ? "normal" : "warning"}
           />
           <MetricCard
             title="外水位 (Outer)"
-            value="1.42 m"
-            trend="-0.05"
+            value={`${stationData?.outer_level.toFixed(2) || "1.42"} m`}
+            trend={stationData ? "即時" : "-0.05"}
             trendUp={false}
             icon={Waves}
             status="normal"
           />
           <MetricCard
             title="運轉泵浦"
-            value="2 / 7"
+            value={`${stationData?.pump_count || "2"} / 7`}
             subValue="中山本站"
             icon={Droplets}
-            status="active"
+            status={stationData?.pump_count && stationData.pump_count > 0 ? "active" : "normal"}
           />
           <MetricCard
             title="預警狀態"
-            value="正常"
-            subValue="未來 2hr 無風險"
+            value={stationData?.warning_status.split(" ")[0] || "正常"}
+            subValue={stationData ? `更新: ${format(new Date(stationData.update_time), "HH:mm")}` : "未來 2hr 無風險"}
             icon={AlertTriangle}
-            status="safe"
+            status={stationData?.warning_status.includes("危險") ? "danger" : stationData?.warning_status.includes("警戒") ? "warning" : "safe"}
           />
         </div>
 
