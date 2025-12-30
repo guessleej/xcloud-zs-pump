@@ -111,8 +111,10 @@ export const WeatherService = {
   async getRealtimeObservation(stationName: string = "臺北"): Promise<ObservationData | null> {
     try {
       // O-A0003-001: 氣象觀測站-10分鐘綜觀氣象資料 (局屬測站，資料較完整)
-      // 備用: O-A0001-001 (自動氣象站)
-      const url = `${BASE_URL}/v1/rest/datastore/O-A0003-001?Authorization=${API_KEY}&format=JSON&StationName=${encodeURIComponent(stationName)}`;
+      //    // O-A0003-001: 局屬氣象測站
+    // 加入 WeatherElement 篩選以減少傳輸量並提升效能
+    const elements = "Weather,AirTemperature,RelativeHumidity,WindSpeed,Now";
+    const url = `${BASE_URL}/v1/rest/datastore/O-A0003-001?Authorization=${API_KEY}&format=JSON&StationName=${encodeURIComponent(stationName)}&WeatherElement=${elements}`;
       const response = await fetch(url);
       const data = await response.json();
 
