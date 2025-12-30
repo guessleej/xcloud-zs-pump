@@ -1,20 +1,43 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, ArrowDown, ArrowUp, Droplets, Waves, Wind } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { ForecastData, RainfallData, WeatherData, WeatherService } from "@/lib/WeatherService";
+import { format } from "date-fns";
+import { AlertTriangle, ArrowDown, ArrowUp, CloudRain, Droplets, Thermometer, Waves, Wind } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Mock Data for Charts
 const waterLevelData = [
-  { time: "00:00", inner: 0.5, outer: 1.2 },
-  { time: "04:00", inner: 0.6, outer: 1.1 },
-  { time: "08:00", inner: 0.8, outer: 1.5 },
-  { time: "12:00", inner: 1.1, outer: 2.1 },
-  { time: "16:00", inner: 0.9, outer: 1.8 },
-  { time: "20:00", inner: 0.7, outer: 1.4 },
-  { time: "24:00", inner: 0.6, outer: 1.3 },
+  { time: "00:00", inner: 0.8, outer: 1.2, predict: 0.85 },
+  { time: "04:00", inner: 0.7, outer: 1.1, predict: 0.75 },
+  { time: "08:00", inner: 0.9, outer: 1.5, predict: 0.95 },
+  { time: "12:00", inner: 1.2, outer: 2.1, predict: 1.3 },
+  { time: "16:00", inner: 1.1, outer: 1.8, predict: 1.15 },
+  { time: "20:00", inner: 0.8, outer: 1.4, predict: 0.85 },
+  { time: "24:00", inner: 0.7, outer: 1.2, predict: 0.75 },
 ];
 
 export default function Home() {
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [rainfall, setRainfall] = useState<RainfallData | null>(null);
+  const [forecast, setForecast] = useState<ForecastData[]>([]);
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      const wData = await WeatherService.getGeneralForecast();
+      const rData = await WeatherService.getRealtimeRainfall();
+      const fData = await WeatherService.getDistrictForecast();
+      
+      if (wData) setWeather(wData);
+      if (rData) setRainfall(rData);
+      if (fData) setForecast(fData);
+    };
+
+    fetchWeather();
+    const interval = setInterval(fetchWeather, 600000); // Update every 10 mins
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-in fade-in duration-500">
@@ -29,9 +52,9 @@ export default function Home() {
             </p>
           </div>
           <div className="flex items-center gap-4 text-sm font-mono text-muted-foreground bg-card/50 px-4 py-2 rounded-full border border-border/50 backdrop-blur-md">
-            <span>2025-12-30</span>
+            <span>{format(new Date(), "yyyy-MM-dd")}</span>
             <span className="text-primary">|</span>
-            <span>14:30:00 GMT+8</span>
+            <span>{format(new Date(), "HH:mm:ss")} GMT+8</span>
           </div>
         </div>
 
@@ -124,22 +147,79 @@ export default function Home() {
 
           {/* Status Panel */}
           <div className="space-y-6">
-            {/* Weather Widget */}
-            <Card className="bg-gradient-to-br from-card/60 to-card/30 backdrop-blur-md border-border/50">
+            {/* Weather Info */}
+            <Card className="bg-card/40 backdrop-blur-md border-border/50 lg:row-span-2">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm uppercase tracking-wider text-muted-foreground">
-                  <Wind className="w-4 h-4" /> 氣象資訊
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Wind className="w-4 h-4 text-primary" /> 氣象資訊 (中山區)
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                {/* Current Weather */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-4xl font-display font-bold text-foreground">24°C</div>
-                    <div className="text-sm text-muted-foreground mt-1">多雲時陰</div>
+                    <div className="text-4xl font-display font-bold text-foreground">
+                      {weather?.temperature.split(" - ")[0] || "24"}°C
+                    </div>
+                    <div className="text-muted-foreground mt-1 flex items-center gap-2">
+                      {weather?.weatherPhenomenon || "多雲時陰"}
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                        即時
+                      </span>
+                    </div>
                   </div>
                   <div className="text-right space-y-1">
-                    <div className="text-xs text-muted-foreground">降雨機率 <span className="text-primary font-bold">30%</span></div>
-                    <div className="text-xs text-muted-foreground">風速 <span className="text-foreground font-mono">3.2 m/s</span></div>
+                    <div className="text-sm text-muted-foreground">降雨機率 <span className="text-blue-400 font-bold">{weather?.pop || "30"}%</span></div>
+                    <div className="text-sm text-muted-foreground">累積雨量 <span className="text-foreground">{rainfall?.rain24hr || "0"} mm</span></div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                    <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <CloudRain className="w-3 h-3" /> 1hr 雨量
+                    </div>
+                    <div className="text-xl font-bold text-blue-400">{rainfall?.rain1hr || 0} <span className="text-xs text-muted-foreground">mm</span></div>
+                  </div>
+                  <div className="bg-black/20 p-3 rounded-lg border border-white/5">
+                    <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Thermometer className="w-3 h-3" /> 氣溫範圍
+                    </div>
+                    <div className="text-xl font-bold text-foreground">{weather?.temperature || "22 - 26"} <span className="text-xs text-muted-foreground">°C</span></div>
+                  </div>
+                </div>
+
+                {/* Rainfall Forecast Chart */}
+                <div className="pt-4 border-t border-border/30">
+                  <h4 className="text-sm font-medium mb-4 flex items-center gap-2">
+                    <Waves className="w-4 h-4 text-blue-400" />
+                    未來 36 小時降雨機率預測
+                  </h4>
+                  <div className="h-[180px] w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={forecast.length > 0 ? forecast : [
+                        { startTime: "12:00", pop: 30 }, { startTime: "18:00", pop: 40 }, { startTime: "00:00", pop: 20 },
+                        { startTime: "06:00", pop: 10 }, { startTime: "12:00", pop: 60 }, { startTime: "18:00", pop: 80 }
+                      ]}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.1} vertical={false} />
+                        <XAxis 
+                          dataKey="startTime" 
+                          stroke="var(--color-muted-foreground)" 
+                          fontSize={10} 
+                          tickLine={false} 
+                          axisLine={false}
+                          tickFormatter={(time) => format(new Date(time), "MM/dd HH")}
+                        />
+                        <YAxis stroke="var(--color-muted-foreground)" fontSize={10} tickLine={false} axisLine={false} unit="%" />
+                        <Tooltip 
+                          cursor={{fill: 'var(--color-primary)', opacity: 0.1}}
+                          contentStyle={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)", borderRadius: "8px" }}
+                          itemStyle={{ color: "var(--color-foreground)" }}
+                          labelFormatter={(label) => format(new Date(label), "MM/dd HH:mm")}
+                        />
+                        <Bar dataKey="pop" name="降雨機率" fill="var(--color-blue-500)" radius={[4, 4, 0, 0]} barSize={20} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 </div>
               </CardContent>
