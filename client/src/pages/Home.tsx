@@ -198,8 +198,12 @@ export default function Home() {
                   <div className="h-[180px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={forecast.length > 0 ? forecast : [
-                        { startTime: "12:00", pop: 30 }, { startTime: "18:00", pop: 40 }, { startTime: "00:00", pop: 20 },
-                        { startTime: "06:00", pop: 10 }, { startTime: "12:00", pop: 60 }, { startTime: "18:00", pop: 80 }
+                        { startTime: new Date().toISOString(), pop: 30 },
+                        { startTime: new Date(Date.now() + 21600000).toISOString(), pop: 40 }, // +6h
+                        { startTime: new Date(Date.now() + 43200000).toISOString(), pop: 20 }, // +12h
+                        { startTime: new Date(Date.now() + 64800000).toISOString(), pop: 10 }, // +18h
+                        { startTime: new Date(Date.now() + 86400000).toISOString(), pop: 60 }, // +24h
+                        { startTime: new Date(Date.now() + 108000000).toISOString(), pop: 80 } // +30h
                       ]}>
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" opacity={0.1} vertical={false} />
                         <XAxis 
