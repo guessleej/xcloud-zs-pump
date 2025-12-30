@@ -120,6 +120,8 @@ export const WeatherService = {
         const station = data.records.Station[0];
         const weatherElement = station.WeatherElement;
 
+        // API 回傳的欄位名稱可能會有大小寫差異，需進行防呆處理
+        // 根據測試結果，O-A0003-001 的欄位是 AirTemperature, RelativeHumidity, WindSpeed
         return {
           stationName: station.StationName,
           temperature: parseFloat(weatherElement.AirTemperature) || 0,
