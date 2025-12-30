@@ -1,4 +1,4 @@
-const API_KEY = import.meta.env.CWA_API_KEY || "CWA-19B86670-A564-4C52-8503-689300A30262"; // Fallback for demo if env not set
+const API_KEY = import.meta.env.VITE_CWA_API_KEY || "CWA-2A2F828D-6DE6-4EC1-9049-D972D8C89D01"; // Fallback for demo if env not set
 const BASE_URL = "https://opendata.cwa.gov.tw/api";
 
 export interface WeatherData {
