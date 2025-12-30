@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ForecastData, RainfallData, WeatherData, WeatherService } from "@/lib/WeatherService";
+import { ForecastData, ObservationData, RainfallData, WeatherData, WeatherService } from "@/lib/WeatherService";
 import { format } from "date-fns";
 import { AlertTriangle, ArrowDown, ArrowUp, CloudRain, Droplets, Thermometer, Waves, Wind } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -19,16 +19,19 @@ const waterLevelData = [
 
 export default function Home() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [observation, setObservation] = useState<ObservationData | null>(null);
   const [rainfall, setRainfall] = useState<RainfallData | null>(null);
   const [forecast, setForecast] = useState<ForecastData[]>([]);
 
   useEffect(() => {
     const fetchWeather = async () => {
       const wData = await WeatherService.getGeneralForecast();
+      const oData = await WeatherService.getRealtimeObservation("臺北"); // 優先使用臺北測站 (局屬)
       const rData = await WeatherService.getRealtimeRainfall();
       const fData = await WeatherService.getDistrictForecast();
       
       if (wData) setWeather(wData);
+      if (oData) setObservation(oData);
       if (rData) setRainfall(rData);
       if (fData) setForecast(fData);
     };
@@ -159,12 +162,12 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-4xl font-display font-bold text-foreground">
-                      {weather?.temperature.split(" - ")[0] || "24"}°C
+                      {observation?.temperature || weather?.temperature.split(" - ")[0] || "--"}°C
                     </div>
                     <div className="text-muted-foreground mt-1 flex items-center gap-2">
                       {weather?.weatherPhenomenon || "多雲時陰"}
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                        即時
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 animate-pulse">
+                        實測
                       </span>
                     </div>
                   </div>

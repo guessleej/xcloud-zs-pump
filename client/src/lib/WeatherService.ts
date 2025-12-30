@@ -9,6 +9,14 @@ export interface WeatherData {
   windSpeed: string;
 }
 
+export interface ObservationData {
+  stationName: string;
+  temperature: number;
+  humidity: number;
+  windSpeed: number;
+  obsTime: string;
+}
+
 export interface RainfallData {
   stationId: string;
   stationName: string;
@@ -96,6 +104,53 @@ export const WeatherService = {
     } catch (error) {
       console.error("Failed to fetch district forecast:", error);
       return [];
+    }
+  },
+
+  // 取得即時氣象觀測資料 (溫度、濕度、風速)
+  async getRealtimeObservation(stationName: string = "臺北"): Promise<ObservationData | null> {
+    try {
+      // O-A0003-001: 氣象觀測站-10分鐘綜觀氣象資料 (局屬測站，資料較完整)
+      // 備用: O-A0001-001 (自動氣象站)
+      const url = `${BASE_URL}/v1/rest/datastore/O-A0003-001?Authorization=${API_KEY}&format=JSON&StationName=${encodeURIComponent(stationName)}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.success === "true" && data.records.Station.length > 0) {
+        const station = data.records.Station[0];
+        const weatherElement = station.WeatherElement;
+
+        return {
+          stationName: station.StationName,
+          temperature: parseFloat(weatherElement.AirTemperature) || 0,
+          humidity: parseFloat(weatherElement.RelativeHumidity) || 0,
+          windSpeed: parseFloat(weatherElement.WindSpeed) || 0,
+          obsTime: station.ObsTime.DateTime
+        };
+      }
+      
+      // 如果找不到局屬測站，嘗試自動測站 (O-A0001-001)
+      const autoUrl = `${BASE_URL}/v1/rest/datastore/O-A0001-001?Authorization=${API_KEY}&format=JSON&StationName=${encodeURIComponent(stationName)}`;
+      const autoResponse = await fetch(autoUrl);
+      const autoData = await autoResponse.json();
+
+      if (autoData.success === "true" && autoData.records.Station.length > 0) {
+        const station = autoData.records.Station[0];
+        const weatherElement = station.WeatherElement;
+
+        return {
+          stationName: station.StationName,
+          temperature: parseFloat(weatherElement.AirTemperature) || 0,
+          humidity: parseFloat(weatherElement.RelativeHumidity) || 0,
+          windSpeed: parseFloat(weatherElement.WindSpeed) || 0,
+          obsTime: station.ObsTime.DateTime
+        };
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Failed to fetch realtime observation:", error);
+      return null;
     }
   },
 
