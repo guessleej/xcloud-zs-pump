@@ -4,13 +4,22 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import Alerts from "./pages/Alerts";
+import Analysis from "./pages/Analysis";
 import Home from "./pages/Home";
+import Hydrology from "./pages/Hydrology";
+import Settings from "./pages/Settings";
 
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/monitoring"} component={Home} />
+      <Route path={"/analysis"} component={Analysis} />
+      <Route path={"/alerts"} component={Alerts} />
+      <Route path={"/hydrology"} component={Hydrology} />
+      <Route path={"/settings"} component={Settings} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
