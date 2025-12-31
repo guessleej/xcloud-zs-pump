@@ -143,6 +143,63 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
+          {/* Notifications Settings */}
+          <TabsContent value="notifications">
+            <Card className="bg-card/40 backdrop-blur-md border-border/50">
+              <CardHeader>
+                <CardTitle>通知與警報設定</CardTitle>
+                <CardDescription>管理系統警報通知方式與推播設定</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>水位警報通知</Label>
+                      <p className="text-sm text-muted-foreground">當內水位達到警戒值時發送通知</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  
+                  <Separator className="bg-border/50" />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>極端氣候警報</Label>
+                      <p className="text-sm text-muted-foreground">當時雨量或陣風超過閾值時發送通知</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  
+                  <Separator className="bg-border/50" />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>設備異常通知</Label>
+                      <p className="text-sm text-muted-foreground">當泵浦或閘門狀態異常時發送通知</p>
+                    </div>
+                    <Switch defaultChecked />
+                  </div>
+                  
+                  <Separator className="bg-border/50" />
+                  
+                  <div className="space-y-2">
+                    <Label>LINE Notify Token</Label>
+                    <div className="flex gap-2">
+                      <Input type="password" placeholder="輸入 LINE Notify Token" className="font-mono text-sm" />
+                      <Button variant="outline" className="text-green-400 border-green-500/20 bg-green-500/10">測試</Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">用於發送警報訊息至 LINE 群組</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Email 通知清單</Label>
+                    <Input placeholder="輸入 Email 地址，多個以逗號分隔" className="font-mono text-sm" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Account Settings */}
           <TabsContent value="account">
             <Card className="bg-card/40 backdrop-blur-md border-border/50">

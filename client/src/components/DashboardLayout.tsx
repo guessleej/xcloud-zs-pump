@@ -27,7 +27,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <Droplets className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-display font-bold text-lg tracking-wider text-foreground">ZS-PUMP</h1>
+            <h1 className="font-display font-bold text-lg tracking-wider text-foreground">xCloud-ZS-PUMP</h1>
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest">War Room</p>
           </div>
         </div>
